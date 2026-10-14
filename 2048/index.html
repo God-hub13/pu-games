@@ -11,6 +11,19 @@
   <script src="pu-tg.js"></script>
 
   <link href="style/main.css" rel="stylesheet" type="text/css">
+  <style>
+    /* Pleasure Union: игра на весь экран — счёт сверху, поле по центру. */
+    html, body.pu-full { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    body.pu-full { display: flex; flex-direction: column; touch-action: none; }
+    .pu-top { flex: none; display: flex; align-items: center; justify-content: center; position: relative;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 4px; }
+    .pu-top .score-container { margin-top: 0; min-width: 96px; height: 30px; line-height: 52px; font-size: 30px; padding: 15px 28px; }
+    .pu-restart { position: absolute; right: 16px; top: calc(18px + env(safe-area-inset-top)); width: 44px; height: 44px;
+      border: 0; border-radius: 10px; background: #8f7a66; color: #f9f6f2; font-size: 24px; line-height: 44px; padding: 0; cursor: pointer; }
+    .pu-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+    .pu-stage .container { width: 500px; margin: 0; flex: none; transform-origin: center center; }
+    .pu-stage .game-container { margin-top: 0; }
+  </style>
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
   <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x1096.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone 5+ -->
@@ -22,70 +35,37 @@
   <meta name="MobileOptimized" content="320">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
-<body>
-  <div class="container">
-    <div class="heading">
-      <h1 class="title">2048</h1>
-      <div class="scores-container">
-        <div class="score-container">0</div>
-        <div class="best-container">0</div>
-      </div>
-    </div>
-
-    <div class="above-game">
-      <p class="game-intro">Складывай числа и доберись до <strong>2048!</strong></p>
-      <a class="restart-button">Заново</a>
-    </div>
-
-    <div class="game-container">
-      <div class="game-message">
-        <p></p>
-        <div class="lower">
-	        <a class="keep-playing-button">Играть дальше</a>
-          <a class="retry-button">Ещё раз</a>
-        </div>
-      </div>
-
-      <div class="grid-container">
-        <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-        </div>
-        <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-        </div>
-        <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-        </div>
-        <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-        </div>
-      </div>
-
-      <div class="tile-container">
-
-      </div>
-    </div>
-
-    <p class="game-explanation">
-      <strong class="important">Как играть:</strong> свайпай в любую сторону — все плитки поедут туда. Две плитки с одинаковым числом <strong>сливаются в одну!</strong>
-    </p>
-    <hr>
-    <p>
-    Автор игры — <a href="https://github.com/gabrielecirulli/2048" target="_blank" rel="noopener">Gabriele Cirulli</a>, лицензия MIT. По мотивам 1024 от Veewo Studio и Threes от Asher Vollmer. В Pleasure Union — перевод и управление для Telegram.
-    </p>
+<body class="pu-full">
+  <!-- Pleasure Union: только поле и текущий счёт (God 14.10: «нужна просто
+       сама игра и счётчик текущего успеха»). Рекорд и кнопка «Заново» из
+       оригинала оставлены в разметке, но спрятаны — к ним привязан код игры. -->
+  <div class="pu-top">
+    <div class="score-container">0</div>
+    <button class="pu-restart" aria-label="Заново" title="Заново">↻</button>
   </div>
+  <div class="pu-stage">
+    <div class="container" id="puBoard">
+      <div class="game-container">
+        <div class="game-message">
+          <p></p>
+          <div class="lower">
+            <a class="keep-playing-button">Играть дальше</a>
+            <a class="retry-button">Ещё раз</a>
+          </div>
+        </div>
+
+        <div class="grid-container">
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+          <div class="grid-row"><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div></div>
+        </div>
+
+        <div class="tile-container"></div>
+      </div>
+    </div>
+  </div>
+  <div hidden><div class="best-container">0</div><a class="restart-button">Заново</a></div>
 
   <script src="js/bind_polyfill.js"></script>
   <script src="js/classlist_polyfill.js"></script>
@@ -97,5 +77,24 @@
   <script src="js/local_storage_manager.js"></script>
   <script src="js/game_manager.js"></script>
   <script src="js/application.js"></script>
+  <script>
+    /* Поле 500×500 (вёрстка оригинала) подгоняем под экран масштабом: так
+       плитки, шрифты и анимации остаются ровно как у автора на любом
+       телефоне. Свайпы считаются в пикселях экрана — масштаб им не мешает. */
+    (function () {
+      var board = document.getElementById('puBoard');
+      var stage = document.querySelector('.pu-stage');
+      function fit() {
+        var k = Math.min((stage.clientWidth - 24) / 500, (stage.clientHeight - 24) / 500);
+        board.style.transform = 'scale(' + Math.max(0.3, k) + ')';
+      }
+      window.addEventListener('resize', fit);
+      fit();
+      // «↻» — та же кнопка «Заново», что в оригинале (она спрятана).
+      document.querySelector('.pu-restart').addEventListener('click', function () {
+        document.querySelector('.restart-button').click();
+      });
+    })();
+  </script>
 </body>
 </html>
