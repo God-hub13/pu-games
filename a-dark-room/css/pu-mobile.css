@@ -125,13 +125,34 @@
 	.eventPanel {
 		left: 0;
 		right: 0;
-		top: 10px;
+		top: 16px;
 		width: auto;
-		padding: 16px;
+		padding: 34px 16px 16px;
 		max-height: calc(var(--pu-vh) - 40px);
 		overflow-y: auto;
 		position: fixed;
 		margin: 0 8px;
+		box-sizing: border-box;
+	}
+	/* Заголовок события у автора висит НАД рамкой (top: -12px). Здесь у окна
+	   есть прокрутка (длинные события не влезали в экран), а прокрутка
+	   обрезает всё, что за рамкой, — и «Есть звук!» срезало наполовину.
+	   Поэтому заголовок — внутри рамки, сверху. */
+	.eventPanel .eventTitle {
+		top: 10px;
+		left: 16px;
+	}
+	/* Рамка окна у автора нарисована псевдоэлементом за краем окна — по
+	   той же причине её срезало. Здесь — обычная рамка самого окна. */
+	.eventPanel {
+		border: 2px solid black;
+		box-shadow: 5px 5px 5px #666666;
+	}
+	.eventPanel:after {
+		display: none;
+	}
+	body.noMask .eventPanel {
+		border-color: white;
 	}
 	.eventPanel:before {
 		position: fixed;
