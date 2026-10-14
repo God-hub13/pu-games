@@ -36,9 +36,13 @@ def check(game: Path, fix: bool) -> list[str]:
     bad = []
     if not any(game.glob("LICENSE*")) and not any(game.glob("COPYING*")):
         bad.append("нет файла лицензии автора")
-    readme = (ROOT / "README.md").read_text(encoding="utf-8") if (ROOT / "README.md").exists() else ""
-    if f"`{game.name}/`" not in readme:
-        bad.append("не записана в README.md (источник, лицензия, что изменено)")
+    if game.parent == ROOT:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8") if (ROOT / "README.md").exists() else ""
+        if f"`{game.name}/`" not in readme:
+            bad.append("не записана в README.md (источник, лицензия, что изменено)")
+    elif not (game / "README.md").exists():
+        # большая игра в своей ветке: источник, лицензия и правки — в её README
+        bad.append("нет README.md (источник, лицензия, что изменено)")
     html = (game / "index.html").read_text(encoding="utf-8", errors="replace")
     head = html[:html.lower().find("</head>")] if "</head>" in html.lower() else html
     for name in ("description", "pu:online", "pu:players"):
@@ -63,14 +67,17 @@ def check(game: Path, fix: bool) -> list[str]:
         text = path.read_text(encoding="utf-8", errors="replace")
         for t in TRACKERS:
             if t in text:
-                bad.append(f"{path.relative_to(ROOT)}: чужой счётчик/реклама «{t}»")
+                bad.append(f"{path.relative_to(game.parent)}: чужой счётчик/реклама «{t}»")
     return bad
 
 
 def main() -> int:
     fix = "--fix" in sys.argv
+    # Большие игры живут в своих ветках (см. README): их папку — ветку,
+    # выгруженную через `git worktree`, — передают путём.
+    picked = [Path(a).resolve() for a in sys.argv[1:] if not a.startswith("--")]
     failed = False
-    for game in games():
+    for game in picked or games():
         bad = check(game, fix)
         print(("❌ " if bad else "✅ ") + game.name)
         for b in bad:
