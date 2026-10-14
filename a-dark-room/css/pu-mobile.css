@@ -1,0 +1,192 @@
+/* Pleasure Union — A Dark Room на телефоне.
+
+   Оригинал свёрстан под компьютер: панель 700px, слева колонка сообщений
+   220px, кнопки и склад стоят абсолютно по пикселям. На телефоне (портрет)
+   всё это просто не помещалось, и игра отправляла на страницу «играйте с
+   компьютера».
+
+   Здесь — раскладка для узкого экрана:
+     • сообщения — полосой сверху, а не колонкой слева;
+     • панель (комната, лес, путь, карта) — во всю ширину экрана; сдвиг
+       между панелями считает script/engine.js → Engine.panelWidth();
+     • слева кнопки (в один столбик), справа склад и деревня;
+     • меню — строкой внизу, окна событий — по ширине экрана.
+
+   Компьютер (шире 760px) не трогаем: там остаётся вёрстка автора. */
+
+@media screen and (max-width: 760px) {
+	:root {
+		--pu-top: 92px;     /* полоса сообщений */
+		--pu-bottom: 64px;  /* меню внизу */
+		--pu-vh: var(--tg-viewport-stable-height, 100vh);
+		--pu-w: calc(100vw - 16px);
+		--pu-h: calc(var(--pu-vh) - var(--pu-top) - var(--pu-bottom));
+	}
+
+	html, body {
+		font-size: 14px;
+		overflow: hidden;
+		height: 100%;
+	}
+
+	body {
+		margin: 0;
+	}
+
+	div#wrapper {
+		width: auto;
+		margin: 0;
+		padding: var(--pu-top) 8px 0 8px;
+	}
+
+	/* Сообщения — сверху, последние видны, старые уходят в туман. */
+	div#notifications {
+		top: 8px;
+		left: 8px;
+		right: 8px;
+		width: auto;
+		height: calc(var(--pu-top) - 14px);
+		font-size: 13px;
+	}
+	div#notifications div.notification {
+		margin-bottom: 4px;
+	}
+
+	div#content {
+		height: var(--pu-h);
+		width: var(--pu-w);
+		overflow-x: hidden;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	div#outerSlider > div {
+		width: var(--pu-w);
+		height: auto;
+		min-height: var(--pu-h);
+	}
+
+	div.location {
+		width: var(--pu-w);
+		min-height: 120px;
+	}
+
+	div#header {
+		padding-bottom: 14px;
+		height: auto;
+		white-space: nowrap;
+		overflow-x: auto;
+	}
+	div.headerButton {
+		margin-right: 10px;
+	}
+
+	/* ——— Комната: кнопки столбиком слева, склад справа ——— */
+	div#buildBtns, div#craftBtns, div#buyBtns {
+		position: static;
+		width: 150px;
+		margin-top: 22px;
+	}
+
+	div#stores, div#weapons, div#village {
+		width: 160px;
+		padding: 5px 8px;
+	}
+
+	/* ——— Лес и деревня: работники — под кнопкой «собрать», в левой колонке ——— */
+	div#workers {
+		left: 0;
+		top: 104px;
+		width: 160px;
+	}
+	.workerRow .tooltip, div.storeRow div.tooltip {
+		width: 140px;
+	}
+
+	/* ——— Пыльная тропа: снаряжение во всю ширину ——— */
+	div#pathScroller {
+		width: auto;
+		max-width: var(--pu-w);
+	}
+	/* снаряжение слева, склад справа — не наезжать */
+	div#outfitting {
+		width: calc(var(--pu-w) - 200px);
+		box-sizing: border-box;
+	}
+
+	/* ——— Карта мира: мельче шрифт, чтобы поле поместилось в экран ——— */
+	#map {
+		font-size: 8px;
+		line-height: 6px;
+		letter-spacing: 0;
+	}
+
+	/* ——— События ——— */
+	.eventPanel {
+		left: 0;
+		right: 0;
+		top: 10px;
+		width: auto;
+		padding: 16px;
+		max-height: calc(var(--pu-vh) - 40px);
+		overflow-y: auto;
+		position: fixed;
+		margin: 0 8px;
+	}
+	.eventPanel:before {
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 100vw;
+		height: var(--pu-vh);
+	}
+	#event .button {
+		margin-bottom: 8px;
+	}
+
+	/* ——— Меню внизу ——— */
+	.menu {
+		left: 0;
+		right: 0;
+		bottom: 0;
+		padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+		text-align: center;
+		font-size: 13px;
+		line-height: 22px;
+		background: inherit;
+		border-top: 1px solid #ccc;
+		max-height: var(--pu-bottom);
+		overflow-y: auto;
+		box-sizing: border-box;
+	}
+	body { background: white; }
+	.menu span {
+		float: none;
+		display: inline-block;
+		margin: 0 7px;
+	}
+	.logo {
+		display: none;
+	}
+
+	div#saveNotify {
+		top: auto;
+		bottom: calc(var(--pu-bottom) + 6px);
+		right: 10px;
+	}
+
+	/* Подсказки кнопок — не вылезать за край экрана. */
+	div.tooltip {
+		max-width: 170px;
+	}
+}
+
+/* На телефоне в меню только то, что нужно для игры: «поделиться» и
+   «github» уводят из Telegram в браузер, а места внизу мало. */
+@media screen and (max-width: 760px) {
+	/* выбор языка раскрывается по наведению мыши — на телефоне его не
+	   открыть, а надпись наезжала на соседние пункты */
+	.menu .shareBtn, .menu .githubBtn, .menu .customSelect {
+		display: none;
+	}
+}
