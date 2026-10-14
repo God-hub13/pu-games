@@ -1,0 +1,25 @@
+<!doctype html><meta charset="utf-8">
+<!-- Обложка и иконка 2048 для галереи. Рисуется: node tools/art/render.js -->
+<style>
+@font-face{font-family:CS;src:url(../../2048/style/fonts/ClearSans-Bold-webfont.woff)}
+body{margin:0;font-family:CS,sans-serif}
+#cover{width:640px;height:360px;background:#faf8ef;position:relative;overflow:hidden}
+#cover h1{position:absolute;left:40px;top:100px;margin:0;font-size:96px;color:#776e65;letter-spacing:-2px}
+#cover p{position:absolute;left:44px;top:218px;margin:0;font-size:22px;color:#776e65;opacity:.8}
+.grid{position:absolute;right:30px;top:40px;width:280px;height:280px;background:#bbada0;border-radius:10px;
+ display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:10px;box-sizing:border-box;transform:rotate(-6deg)}
+.t{border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#776e65;background:rgba(238,228,218,.35)}
+.v2{background:#eee4da}.v4{background:#ede0c8}.v8{background:#f2b179;color:#f9f6f2}.v16{background:#f59563;color:#f9f6f2}
+.v32{background:#f67c5f;color:#f9f6f2}.v64{background:#f65e3b;color:#f9f6f2}.v128{background:#edcf72;color:#f9f6f2;font-size:24px}
+.v256{background:#edcc61;color:#f9f6f2;font-size:24px}.v512{background:#edc850;color:#f9f6f2;font-size:24px}
+.v1024{background:#edc53f;color:#f9f6f2;font-size:19px}.v2048{background:#edc22e;color:#f9f6f2;font-size:19px;box-shadow:0 0 22px 6px rgba(243,215,116,.6)}
+#icon{width:256px;height:256px;background:#edc22e;color:#f9f6f2;display:flex;align-items:center;justify-content:center;font-size:84px;border-radius:0}
+</style>
+<div id="cover"><h1>2048</h1><p>свайпай и складывай</p>
+<div class="grid">
+<div class="t v2">2</div><div class="t v4">4</div><div class="t v8">8</div><div class="t v16">16</div>
+<div class="t"></div><div class="t v32">32</div><div class="t v64">64</div><div class="t v128">128</div>
+<div class="t v4">4</div><div class="t"></div><div class="t v256">256</div><div class="t v512">512</div>
+<div class="t v2">2</div><div class="t v8">8</div><div class="t v1024">1024</div><div class="t v2048">2048</div>
+</div></div>
+<div id="icon">2048</div>

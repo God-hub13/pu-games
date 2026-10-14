@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8">
+<!-- Обложка Clumsy Bird из спрайтов самой игры. Рисуется: node tools/art/render.js -->
+<style>
+body{margin:0}
+#cover{width:640px;height:360px;background:#0099cc;position:relative;overflow:hidden;image-rendering:pixelated}
+.bg{position:absolute;left:-60px;bottom:40px;width:760px}
+.ground{position:absolute;left:0;bottom:-24px;width:760px}
+.logo{position:absolute;left:50%;top:26px;width:300px;transform:translateX(-50%)}
+.pipe{position:absolute;width:70px;height:787px;background:url(../../clumsy-bird/data/img/pipe.png) 0 0/70px 787px}
+.top{right:70px;bottom:225px}
+.bottom{right:70px;top:250px;transform:scaleY(-1)}
+.bird{position:absolute;left:150px;top:170px;width:85px;height:60px;transform:scale(1.2) rotate(-12deg);
+ background:url(../../clumsy-bird/data/img/clumsy.png) 0 0/255px 60px}
+#icon{width:256px;height:256px;background:#0099cc;position:relative;overflow:hidden;image-rendering:pixelated}
+#icon .bird{left:86px;top:98px;transform:scale(2.2);transform-origin:50% 50%}
+</style>
+<div id="cover">
+ <img class="bg" src="../../clumsy-bird/data/img/bg.png">
+ <div class="pipe top"></div><div class="pipe bottom"></div>
+ <img class="ground" src="../../clumsy-bird/data/img/ground.png">
+ <img class="logo" src="../../clumsy-bird/data/img/logo.png">
+ <div class="bird"></div>
+</div>
+<div id="icon"><div class="bird"></div></div>

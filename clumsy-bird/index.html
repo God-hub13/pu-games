@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html lang="ru">
+    <head>
+        <title>Clumsy Bird</title>
+        <link rel="apple-touch-icon-precomposed" href="data/img/touch-icon-iphone.png"/>
+        <link rel="apple-touch-icon-precomposed" sizes="120x120" href="data/img/touch-icon-iphone-retina.png"/>
+        <link rel="shortcut icon" href="data/img/favicon.ico">
+        <link rel="stylesheet" type="text/css" media="screen" href="index.css">
+        <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <meta name="apple-mobile-web-app-title" content="Clumsy Bird">
+        <meta charset="UTF-8" />
+        <meta name="description" content="Клон Flappy Bird: тапай, чтобы птица летела, и проскакивай между трубами. Кажется простым — первые десять попыток. Оригинал — Ellison Leão.">
+        <meta name="pu:online" content="0">
+        <meta name="pu:players" content="1">
+        <meta name="theme-color" content="#0099cc">
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <script src="pu-tg.js"></script>
+
+        <!-- Humans -->
+        <link rel="author" href="humans.txt" />
+    </head>
+
+    <body>
+        <!-- Canvas placeholder -->
+        <div id="screen"></div>
+
+        <!-- melonJS Library -->
+        <script type="text/javascript" src="js/melonJS-min.js" ></script>
+        <script type="text/javascript" src="build/clumsy-min.js" ></script>
+        <script type="text/javascript">
+            window.onReady(function onReady() {
+                game.onload();
+            });
+        </script>
+
+    </body>
+</html>
