@@ -1,0 +1,1087 @@
+diff --git a/crate/Cargo.toml b/crate/Cargo.toml
+index 37b4726..58d6a6d 100644
+--- a/crate/Cargo.toml
++++ b/crate/Cargo.toml
+@@ -31,7 +31,8 @@ opt-level = 3
+ lto = true
+ 
+ [package.metadata.wasm-pack.profile.release]
+-wasm-opt = ['-O4']
++# Pleasure Union: wasm-opt качается с GitHub при сборке — без него wasm чуть больше.
++wasm-opt = false
+ 
+ [package.metadata.wasm-pack.profile.dev]
+ wasm-opt = false
+diff --git a/index.html b/index.html
+index 8997335..4640301 100644
+--- a/index.html
++++ b/index.html
+@@ -1,120 +1,29 @@
+ <!DOCTYPE html>
+-<html>
+-  <meta http-equiv="cache-control" content="max-age=3600" />
+-  <meta http-equiv="cache-control" content="stale-while-revalidate=864000" />
+-
+-  <meta
+-    name="viewport"
+-    content="width=device-width, initial-scale=1, user-scalable=no"
+-  />
+-  <meta
+-    name="Description"
+-    content="Sandspiel is a falling sand game that provides a relaxing and creative place to play with elements like sand, water, plant, and fire. Enjoy on your phone, tablet or computer, and share your creations with your friends!"
+-  />
+-  <meta name="mobile-web-app-capable" content="yes" />
+-  <meta name="apple-mobile-web-app-capable" content="yes" />
+-  <meta name="apple-itunes-app" content="app-id=6757886943" />
+-  <meta name="msapplication-starturl" content="/" />
+-
+-  <link
+-    rel="apple-touch-icon"
+-    sizes="180x180"
+-    href="/assets/apple-touch-icon.png"
+-  />
+-  <link
+-    rel="icon"
+-    type="image/png"
+-    sizes="32x32"
+-    href="/assets/favicon-32x32.png"
+-  />
+-  <link
+-    rel="icon"
+-    type="image/png"
+-    sizes="16x16"
+-    href="/assets/favicon-16x16.png"
+-  />
+-  <link rel="manifest" href="/assets/site.webmanifest" />
+-  <link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#ccbcbc" />
+-  <meta name="msapplication-TileColor" content="#da532c" />
+-  <meta name="theme-color" content="#ccbcbc" />
+-
++<html lang="ru">
+   <head>
+     <meta charset="utf-8" />
+-    <title>sandspiel</title>
+-    <link rel="manifest" href="/manifest.json" />
+-
+-    <link
+-      href="https://fonts.googleapis.com/css?family=Inconsolata"
+-      rel="stylesheet"
++    <title>Sandspiel</title>
++    <meta
++      name="viewport"
++      content="width=device-width, initial-scale=1, user-scalable=no"
+     />
+-    <link rel="stylesheet" type="text/css" href="/styles.css" />
+-    <script
+-      async
+-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+-    ></script>
+-    <script>
+-      (adsbygoogle = window.adsbygoogle || []).push({
+-        google_ad_client: "ca-pub-9933377295988485",
+-        enable_page_level_ads: true,
+-      });
+-    </script>
+-    <!-- Global site tag (gtag.js) - Google Analytics -->
+-    <script
+-      async
+-      src="https://www.googletagmanager.com/gtag/js?id=UA-54922012-3"
+-    ></script>
+-    <script>
+-      window.dataLayer = window.dataLayer || [];
+-      function gtag() {
+-        dataLayer.push(arguments);
+-      }
+-      gtag("js", new Date());
+-
+-      gtag("config", "UA-54922012-3");
+-    </script>
++    <meta name="description" content="Песочница: сыпь песок, лей воду, разводи огонь, сажай растения — и смотри, как всё живёт само. Залипательно и спокойно. Автор — Max Bittker." />
++    <meta name="pu:online" content="0" />
++    <meta name="pu:players" content="1" />
++    <meta name="theme-color" content="#ccbcbc" />
++    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png" />
++    <link rel="stylesheet" type="text/css" href="styles.css" />
++    <script src="https://telegram.org/js/telegram-web-app.js"></script>
++    <script src="pu-tg.js"></script>
++    <!-- Pleasure Union: без рекламы, Google Analytics, счётчика a.sandspiel.club
++         и Google Fonts (шрифт Inconsolata лежит рядом, см. styles.css). -->
+   </head>
+ 
+   <body>
+-    <style type="text/css">
+-      .adslot_1 {
+-        display: block;
+-        z-index: 99;
+-        position: absolute;
+-        /* width: 320px; */
+-        height: 100%;
+-        pointer-events: none;
+-        /* background-color: rebeccapurple; */
+-      }
+-      .adslot_1 * {
+-        pointer-events: all;
+-      }
+-      /*   @media screen and (max-width: 1000px) {
+-        .adslot_1 {
+-          display: none !important;
+-        }
+-      } */
+-    </style>
+-    <!-- left-sidebar -->
+-    <ins
+-      class="adsbygoogle adslot_1"
+-      style="display: block"
+-      data-ad-client="ca-pub-9933377295988485"
+-      data-ad-slot="2593942396"
+-      data-ad-format="vertical"
+-      data-full-width-responsive="false"
+-    ></ins>
+-    <script
+-      async
+-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+-    ></script>
+-
+     <div id="background">
+       <div id="ui"></div>
+       <div id="fps"></div>
+       <canvas id="sand-canvas"></canvas> <canvas id="fluid-canvas"></canvas>
+     </div>
+   </body>
+-
+-  <script async defer src="https://a.sandspiel.club/app.js"></script>
+-  <noscript><img src="https://a.sandspiel.club/image.gif" alt="" /></noscript>
+ </html>
+diff --git a/js/app.js b/js/app.js
+index d3202b9..dabc450 100644
+--- a/js/app.js
++++ b/js/app.js
+@@ -1,43 +1,17 @@
+ import React from "react";
+ import ReactDOM from "react-dom";
+-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
++import { MemoryRouter as Router, Route, Link } from "react-router-dom";
+ 
+ import Info from "./components/info";
+ import { Index } from "./components/ui";
+-import Browse from "./components/browse";
+-import Admin from "./components/admin";
+ import Menu from "./components/menu";
+-import SignInScreen from "./components/signin";
+-import BenchmarkRunner from "./components/benchmarkRunner";
+ 
+ let sizeMap = [2, 5, 10, 18, 30, 45];
+ 
+-function BrowseRouter({ match, location }) {
+-  return (
+-    <Menu>
+-      <Browse location={location} />
+-    </Menu>
+-  );
+-}
+-
+-function AdminRouter({ match, location }) {
+-  return (
+-    <Menu>
+-      <Admin location={location} />
+-    </Menu>
+-  );
+-}
+-
+-function SigninRouter({ match, location }) {
+-  return (
+-    <Menu>
+-      <SignInScreen location={location} />
+-    </Menu>
+-  );
+-}
+-
+ function AppRouter() {
+   return (
++    // Pleasure Union: адреса внутри игры живут в памяти — игра лежит не в
++    // корне сайта, а в /g/<игра>/, и настоящие пути «/info/» вели бы мимо.
+     <Router>
+       <Route path="/" component={Index} />
+       <Route
+@@ -49,11 +23,6 @@ function AppRouter() {
+           </Menu>
+         )}
+       />
+-      <Route exact path="/bench" component={BenchmarkRunner} />
+-      <Route path="/browse" component={BrowseRouter} />
+-      <Route path="/admin" component={AdminRouter} />
+-      <Route path="/login" component={SigninRouter} />
+-      <Route path="/__/auth/handler" component={SigninRouter} />
+     </Router>
+   );
+ }
+diff --git a/js/components/info.js b/js/components/info.js
+index 9303cac..32d943e 100644
+--- a/js/components/info.js
++++ b/js/components/info.js
+@@ -1,108 +1,105 @@
+ import React from "react";
+ 
++// Pleasure Union: страница переведена на русский; ссылки и слова автора —
++// его, перевод наш.
+ const Info = () => {
+   return (
+     <div className="Info">
+       <h1>Sandspiel </h1>
+       <p>
+-        Created by <a href="https://maxbittker.com">max bittker</a>
++        Автор игры — <a href="https://maxbittker.com">Max Bittker</a>
++      </p>
++      <p>
++        Версия Pleasure Union: только песочница — без аккаунтов, загрузки и
++        просмотра чужих работ (они живут на сервере автора). Полная игра — на{" "}
++        <a href="https://sandspiel.club" target="_blank">sandspiel.club</a>.
+       </p>
+       <hr />
+       <br />
+       <p>
+         <a href="https://apps.apple.com/app/id6757886943" target="_blank">
+           <img
+-            src="/assets/App_Store_Badge.svg.png"
++            src="assets/App_Store_Badge.svg.png"
+             alt="Download on the App Store"
+             className="app-store-badge"
+           />
+         </a>
+       </p>
+       <p>
+-        See also:{" "}
++        Ещё у автора:{" "}
+         <a href="https://studio.sandspiel.club/" target="_blank">
+           Sandspiel Studio
+         </a>{" "}
+-        and{" "}
++        и{" "}
+         <a href="https://orb.farm" target="_blank">
+           orb.farm
+         </a>
+-        <img src="https://orb.farm/assets/favicon.ico" className="link-icon" />
+       </p>
+       <br />
+       <p>
+-        Welcome, and thanks for coming by! I hope that you enjoy exploring this
+-        small game, and it brings you some calm.{" "}
++        Добро пожаловать, и спасибо, что заглянули! Надеюсь, вам понравится
++        исследовать эту маленькую игру и она подарит немного спокойствия.
+       </p>
+       <p>
+-        Growing up, "falling sand" games like this one provided me hours of
+-        entertainment and imagination. I want to particularly thank ha55ii's{" "}
+-        <a href="https://dan-ball.jp/en/javagame/dust/">Powder Game</a> as the
+-        primary inspiration for sandspiel.
++        В детстве такие игры с «падающим песком» дарили мне часы развлечений и
++        фантазии. Особенно хочу поблагодарить{" "}
++        <a href="https://dan-ball.jp/en/javagame/dust/">Powder Game</a> от
++        ha55ii — главное вдохновение для sandspiel.
+       </p>
+       <br />
+       <p>
+-        If you want to read more the inspiration, architecture, and history of
+-        the game, I wrote a blog post (it gets technical in the middle):&nbsp;
++        О вдохновении, устройстве и истории игры я написал в блоге (в середине
++        становится технично):&nbsp;
+         <a href="https://maxbittker.com/making-sandspiel">Making Sandspiel</a>
+       </p>
+       <br />
+       <p>
+-        If you'd like, you can view the{" "}
+-        <a href="https://github.com/maxbittker/sandspiel">source code</a> or{" "}
+-        <a href="https://github.com/maxbittker/sandspiel/issues">report bugs</a>{" "}
+-        on github or feel free to reach out on twitter and I'll try to answer!
+-      </p>
+-      <br />
+-      <p>
+-        Lastly, I want to say that if you enjoy this game or share your artwork
+-        on it, your opinion is important to me and I want to do my best to
+-        ensure sandspiel is a friendly and kind place to play, without bullying,
+-        racism, transphobia, homophobia, or any other forms of bigotry. If something is wrong or there's some way I can
+-        help, feel free to contact me at <a href="mailto:maxbittker@gmail.com">maxbittker@gmail.com</a> or <a href="https://twitter.com/maxbittker">@maxbittker on twitter.</a>
++        <a href="https://github.com/maxbittker/sandspiel">Исходный код</a> и{" "}
++        <a href="https://github.com/maxbittker/sandspiel/issues">сообщения об
++        ошибках</a> — на GitHub.
+       </p>
+       <br />
+       <hr />
+       <br />
+-      <h2>Element Information:</h2>
+-      <h4>Wall </h4>
+-      Indestructible.
+-      <h4>Sand </h4>
+-      Sinks in water.
+-      <h4>Water </h4>
+-      Puts out fire.
+-      <h4>Stone </h4>
+-      Forms arches, turns into sand under pressure.
+-      <h4>Ice </h4>
+-      Freezes Water, slippery!
+-      <h4>Gas </h4>
+-      Highly Flammable!
+-      <h4>Cloner </h4>
+-      Copies the first element it touches. 
+-      <h4>Mite </h4>
+-      Eats wood and plant, but loves dust! Slides on ice..
+-      <h4>Wood </h4>
+-      Sturdy, but biodegradable.
+-      <h4>Plant </h4>
+-      Thrives in wet enviroments.
+-      <h4>Fungus </h4>
+-      Spreads over everything.
+-      <h4>Seed </h4>
+-      Grows on sand, plant, and fungus.
+-      <h4>Fire </h4>
+-      Hot!
+-      <h4>Lava </h4>
+-      Flammable and heavy.
+-      <h4>Acid </h4>
+-      Corrodes other elements.
+-      <h4>Dust </h4>
+-      Pretty, but dangerously explosive.
+-      <h4>Oil </h4>
+-      Produces smoke when set on fire.
+-      <h4>Rocket </h4>
+-      Explodes into copies of the first element it touches.
+-      <h4>Empty </h4>
+-      Erases.
++      <h2>Вещества:</h2>
++      <h4>Стена </h4>
++      Не разрушается.
++      <h4>Песок </h4>
++      Тонет в воде.
++      <h4>Вода </h4>
++      Тушит огонь.
++      <h4>Камень </h4>
++      Держит арки, под давлением превращается в песок.
++      <h4>Лёд </h4>
++      Замораживает воду. Скользкий!
++      <h4>Газ </h4>
++      Очень горючий!
++      <h4>Клонер </h4>
++      Копирует первое вещество, которого коснётся.
++      <h4>Клещ </h4>
++      Ест дерево и растения, но обожает пыль! Скользит по льду.
++      <h4>Дерево </h4>
++      Прочное, но гниёт.
++      <h4>Растение </h4>
++      Растёт там, где сыро.
++      <h4>Грибок </h4>
++      Расползается по всему.
++      <h4>Семя </h4>
++      Прорастает на песке, растениях и грибке.
++      <h4>Огонь </h4>
++      Горячо!
++      <h4>Лава </h4>
++      Тяжёлая и поджигает.
++      <h4>Кислота </h4>
++      Разъедает другие вещества.
++      <h4>Пыль </h4>
++      Красивая, но взрывается.
++      <h4>Нефть </h4>
++      Горит и дымит.
++      <h4>Ракета </h4>
++      Взрывается копиями первого вещества, которого коснётся.
++      <h4>Ластик </h4>
++      Стирает.
+       <hr />
+       <hr />
+       <hr />
+diff --git a/js/components/ui.js b/js/components/ui.js
+index 10d1bd6..7cf1eb8 100644
+--- a/js/components/ui.js
++++ b/js/components/ui.js
+@@ -1,6 +1,5 @@
+ import React from "react";
+ import { Link } from "react-router-dom";
+-import * as Sentry from "@sentry/browser";
+ 
+ import * as wasm from "../../crate/pkg/sandtable_bg.wasm";
+ import { Species } from "../../crate/pkg/sandtable";
+@@ -8,16 +7,36 @@ const memory = wasm.memory;
+ 
+ import { height, universe, width, reset } from "../index.js";
+ import { snapshot, pallette } from "../render.js";
+-import { functions, storage } from "../api.js";
+-import SignInButton from "./signinButton.js";
+ import { svgToImageData, rgbaToSpecies } from "../convertSVG";
+-import { fetchVotedIds } from "../votes.js";
+ 
+ import Menu from "./menu";
+ 
+ window.species = Species;
+ let pallette_data = pallette();
+ 
++// Pleasure Union: названия веществ по-русски (в коде игры они английские).
++const RU = {
++  Empty: "Ластик",
++  Wall: "Стена",
++  Sand: "Песок",
++  Water: "Вода",
++  Stone: "Камень",
++  Ice: "Лёд",
++  Gas: "Газ",
++  Cloner: "Клонер",
++  Mite: "Клещ",
++  Wood: "Дерево",
++  Plant: "Растение",
++  Fungus: "Грибок",
++  Seed: "Семя",
++  Fire: "Огонь",
++  Lava: "Лава",
++  Acid: "Кислота",
++  Dust: "Пыль",
++  Oil: "Нефть",
++  Rocket: "Ракета",
++};
++
+ const ElementButton = (name, selectedElement, setElement) => {
+   let elementID = Species[name];
+ 
+@@ -51,7 +70,7 @@ const ElementButton = (name, selectedElement, setElement) => {
+       }}
+     >
+       {"  "}
+-      {name}
++      {RU[name] || name}
+       {"  "}
+     </button>
+   );
+@@ -84,31 +103,9 @@ class Index extends React.Component {
+     this.load();
+   }
+ 
+-  componentDidMount() {
+-    this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
+-      if (user && this.state.currentSubmission) {
+-        this.checkLiked(this.state.currentSubmission.id);
+-      }
+-    });
+-  }
+-
+-  componentWillUnmount() {
+-    if (this.unregisterAuthObserver) {
+-      this.unregisterAuthObserver();
+-    }
+-  }
+-
+-  // Marks the loaded submission as liked if the signed-in user already voted.
+-  checkLiked(id) {
+-    fetchVotedIds([id]).then((voted) => {
+-      const { currentSubmission } = this.state;
+-      if (voted.has(id) && currentSubmission && currentSubmission.id === id) {
+-        this.setState({
+-          currentSubmission: { ...currentSubmission, liked: true },
+-        });
+-      }
+-    });
+-  }
++  // Pleasure Union: без аккаунтов, загрузки и лайков — только песочница.
++  componentDidMount() {}
++  componentWillUnmount() {}
+ 
+   componentDidUpdate(prevProps) {
+     if (
+@@ -123,8 +120,19 @@ class Index extends React.Component {
+       this.props.location.pathname !== "/" &&
+       prevProps.location.pathname == "/"
+     ) {
++      // Pleasure Union: запомнить, что паузу поставило окно «Об игре», —
++      // закрыли окно, и песок снова сыплется (у автора оставалась пауза).
++      this.pausedByPage = !this.state.paused;
+       this.pause();
+     }
++    if (
++      this.props.location.pathname === "/" &&
++      prevProps.location.pathname !== "/" &&
++      this.pausedByPage
++    ) {
++      this.pausedByPage = false;
++      this.play();
++    }
+     if (
+       prevProps.location.hash === "" ||
+       prevProps.location.hash != this.props.location.hash
+@@ -152,11 +160,19 @@ class Index extends React.Component {
+     });
+   }
+   reset() {
+-    if (window.confirm("Are you sure you want to reset?")) {
++    const clear = () => {
+       this.play();
+       window.location = "#";
+       this.setState({ currentSubmission: null });
+       reset();
++    };
++    // Pleasure Union: в Telegram — его окно вопроса, обычный confirm там
++    // показывается не везде.
++    const tg = window.Telegram && window.Telegram.WebApp;
++    if (tg && tg.initData && tg.showConfirm) {
++      tg.showConfirm("Очистить всё поле?", (ok) => ok && clear());
++    } else if (window.confirm("Очистить всё поле?")) {
++      clear();
+     }
+   }
+   menu() {
+@@ -168,297 +184,8 @@ class Index extends React.Component {
+     this.play();
+     this.setState({ submissionMenuOpen: false });
+   }
+-  upload() {
+-    let dataURL = snapshot(universe);
+-    const cells = new Uint8Array(
+-      memory.buffer,
+-      universe.cells(),
+-      width * height * 4
+-    );
+-
+-    // Create canvas
+-    let canvas = document.createElement("canvas"),
+-      context = canvas.getContext("2d"),
+-      imgData = context.createImageData(width, height);
+-
+-    canvas.height = height;
+-    canvas.width = width;
+-
+-    // fill imgData with data from cells
+-    // transpose for historical compatability
+-    for (let x = 0; x < width; x++) {
+-      for (let y = 0; y < height; y++) {
+-        let cell_index = (y + x * height) * 4;
+-        let img_index = (x + y * width) * 4;
+-        for (var i = 0; i < 4; i++) {
+-          if (i % 4 == 3) {
+-            imgData.data[img_index + i] = 255;
+-          } else {
+-            imgData.data[img_index + i] = cells[cell_index + i];
+-          }
+-        }
+-      }
+-    }
+-    // put data to context at (0, 0)
+-    context.putImageData(imgData, 0, 0);
+-
+-    let cellData = canvas.toDataURL("image/png");
+-
+-    this.pause();
+-    this.setState({
+-      data: { dataURL, cells: cellData },
+-      submissionMenuOpen: true,
+-    });
+-  }
+-  rateLimited() {
+-    var postList = JSON.parse(localStorage.getItem("postList") || "[]");
+-    postList = postList.filter((post) => Date.now() - 1000 * 60 * 5 < post);
+-
+-    if (postList.length >= 3) {
+-      Sentry.captureMessage("RATELIMIT");
+-      return true;
+-    }
+-    return false;
+-  }
+-  submit() {
+-    let { title = "", data, currentSubmission } = this.state;
+-
+-    let { dataURL, cells } = data;
+-    let { currentUser } = firebase.auth();
+-    if (!currentUser) {
+-      window.alert("Please sign in to post!");
+-      return;
+-    }
+-    title = title.replace(
+-      "[profile]",
+-      `https://sandspiel.club/browse/search/?user=${currentUser.uid}`
+-    );
+-
+-    let payload = {
+-      title,
+-      image: dataURL,
+-      parent_id: currentSubmission?.data?.id,
+-      cells,
+-    };
+-
+-    const recordPost = () => {
+-      var postList = JSON.parse(localStorage.getItem("postList") || "[]");
+-      postList = postList.filter((post) => Date.now() - 1000 * 60 * 3 < post);
+-      postList.push(Date.now());
+-      localStorage.setItem("postList", JSON.stringify(postList));
+-    };
+-
+-    const errorMessages = {
+-      202: "This exact creation has already been posted.",
+-      301: "Please verify your email address before posting.",
+-      302: "Too many posts from your network today. Try again later.",
+-      400: "This creation couldn't be validated. Try uploading again.",
+-      401: "Your account has been banned from posting.",
+-      418: "That title isn't allowed. Please choose another.",
+-      429: "You're posting too fast. Wait a few minutes and try again.",
+-    };
+-
+-    this.setState({ submitting: true });
+-    currentUser
+-      .getIdToken()
+-      .then((token) =>
+-        fetch(functions._url("api/creations"), {
+-          method: "POST",
+-          body: JSON.stringify(payload), // data can be `string` or {object}!
+-          headers: {
+-            "Content-Type": "application/json",
+-            Authorization: "Bearer " + token,
+-          },
+-        })
+-      )
+-      .then((res) => {
+-        if (!res.ok) {
+-          throw new Error(
+-            errorMessages[res.status] ||
+-              `Upload failed (HTTP ${res.status}). Please try again.`
+-          );
+-        }
+-        return res.json();
+-      })
+-      .then((response) => {
+-        console.log("Success:", JSON.stringify(response));
+-        recordPost();
+-        this.setState({ submissionMenuOpen: false, submitting: false });
+-        this.play();
+-      })
+-      .catch((error) => {
+-        console.error("Error:", error);
+-        window.alert(error.message || "Upload failed. Please try again.");
+-        this.setState({ submitting: false });
+-      });
+-  }
+-
+-  async loadSVG(svgString) {
+-    const imgData = await svgToImageData(svgString);
+-
+-    const cellsData = new Uint8Array(
+-      memory.buffer,
+-      universe.cells(),
+-      width * height * 4
+-    );
+-
+-    reset();
+-    window.stopboot = true;
+-
+-    for (let i = 0, len = width * height * 4; i < len; i += 4) {
+-      const species = rgbaToSpecies(
+-        imgData.data[i],
+-        imgData.data[i + 1],
+-        imgData.data[i + 2],
+-        imgData.data[i + 3]
+-      );
+-      cellsData[i] = species; // should be 0 to 19
+-      cellsData[i + 1] = Math.floor(100 + Math.random() * 50); // register A
+-      cellsData[i + 2] = 0; // register B
+-      cellsData[i + 3] = 0; // clock
+-    }
+-    universe.flush_undos();
+-    universe.push_undo();
+-
+-    this.pause();
+-  }
+-
+   load() {
+-    let { location } = this.props;
+-    let id = location.hash.replace(/#/, "");
+-    if (id === "") {
+-      return;
+-    }
+-
+-    if (this.state.currentSubmission && this.state.currentSubmission.id == id) {
+-      return;
+-    }
+-
+-    fetch(functions._url(`api/creations/${id}`), {
+-      method: "GET",
+-      headers: {
+-        "Content-Type": "application/json",
+-      },
+-    })
+-      .then((res) => {
+-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+-        return res.json();
+-      })
+-      .then((data) => {
+-        if (!data || !data.id) throw new Error("submission not found");
+-        storage
+-          .refFromURL(
+-            `gs://sandtable-8d0f7.appspot.com/creations/${data.id}.data.png`
+-          )
+-          .getDownloadURL()
+-          .then((dlurl) => {
+-            fetch(dlurl, {
+-              method: "GET",
+-            })
+-              .then((res) => res.blob())
+-              .then((blob) => {
+-                this.setState({ currentSubmission: { id, data } });
+-                this.checkLiked(id);
+-
+-                var url = URL.createObjectURL(blob);
+-                var img = new Image();
+-                img.src = url;
+-                img.onload = () => {
+-                  var canvas = document.createElement("canvas");
+-                  canvas.width = width;
+-                  canvas.height = height;
+-                  var ctx = canvas.getContext("2d");
+-
+-                  ctx.translate(canvas.width / 2, canvas.height / 2);
+-                  ctx.rotate((-90 * Math.PI) / 180);
+-                  ctx.scale(-1, 1.0);
+-                  ctx.translate(-canvas.width / 2, -canvas.height / 2);
+-
+-                  ctx.drawImage(img, 0, 0);
+-                  var imgData = ctx.getImageData(
+-                    0,
+-                    0,
+-                    canvas.width,
+-                    canvas.height
+-                  );
+-
+-                  const cellsData = new Uint8Array(
+-                    memory.buffer,
+-                    universe.cells(),
+-                    width * height * 4
+-                  );
+-
+-                  reset();
+-                  window.stopboot = true;
+-
+-                  for (var i = 0; i < width * height * 4; i++) {
+-                    cellsData[i] = imgData.data[i];
+-                  }
+-                  universe.flush_undos();
+-                  universe.push_undo();
+-                  this.pause();
+-                };
+-              })
+-              .catch((error) => console.error("Error:", error));
+-          })
+-          .catch((error) => console.error("Error:", error));
+-      })
+-      .catch((error) => {
+-        console.error("Error:", error);
+-      });
+-  }
+-  incScore() {
+-    let { currentSubmission } = this.state;
+-    if (!currentSubmission || currentSubmission.liked) return;
+-    let { id } = currentSubmission;
+-    const { currentUser } = firebase.auth();
+-    if (!currentUser) {
+-      window.alert("Please sign in to vote!");
+-      return;
+-    }
+-    if (!currentUser.emailVerified) {
+-      window.alert(`Please verify your email ${currentUser.email} to vote!`);
+-      return;
+-    }
+-    // creations/:id/vote
+-    currentUser
+-      .getIdToken()
+-      .then((token) =>
+-        fetch(functions._url(`api/creations/${id}/vote`), {
+-          method: "PUT",
+-          headers: {
+-            "Content-Type": "application/json",
+-            Authorization: "Bearer " + token,
+-          },
+-        })
+-      )
+-      .then((res) => {
+-        if (res.status === 301) {
+-          // already voted: just reflect that
+-          if (this.state.currentSubmission?.id === id) {
+-            this.setState({
+-              currentSubmission: { ...this.state.currentSubmission, liked: true },
+-            });
+-          }
+-          return null;
+-        }
+-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+-        return res.json();
+-      })
+-      .then((data) => {
+-        if (data && this.state.currentSubmission?.id === id) {
+-          this.setState({
+-            currentSubmission: {
+-              ...this.state.currentSubmission,
+-              data,
+-              liked: true,
+-            },
+-          });
+-        }
+-      })
+-      .catch((e) => {
+-        console.error(e);
+-      });
++    // Pleasure Union: работы других людей живут на сервере автора — здесь их нет.
+   }
+ 
+   render() {
+@@ -485,28 +212,15 @@ class Index extends React.Component {
+           )}
+         </button>
+ 
+-        {!window.location.pathname.includes("school") && (
+-          <>
+-            <button onClick={() => this.upload()}>Upload</button>
+-            <Link
+-              to={{
+-                pathname: "/browse/",
+-                hash,
+-              }}
+-            >
+-              <button>Browse</button>
+-            </Link>
+-          </>
+-        )}
+ 
+-        <button onClick={() => this.reset()}>Reset</button>
++        <button onClick={() => this.reset()}>Сброс</button>
+         <Link
+           to={{
+             pathname: "/info/",
+             hash,
+           }}
+         >
+-          <button>Info</button>
++          <button>Об игре</button>
+         </Link>
+ 
+         {/* {paused && <button onClick={() => universe.tick()}>Tick</button>} */}
+@@ -540,7 +254,7 @@ class Index extends React.Component {
+             this.setState({ selectedElement: -1 });
+           }}
+         >
+-          Wind
++          Ветер
+         </button>
+         {Object.keys(Species)
+           .filter((x) => !Number.isInteger(Number.parseInt(x)))
+@@ -555,46 +269,6 @@ class Index extends React.Component {
+             orb.farm
+           </a>
+         </span> */}
+-        {this.state.currentSubmission && (
+-          <div className="submission-title">
+-            <button
+-              onClick={() => this.incScore()}
+-              title={
+-                this.state.currentSubmission.liked ? "You liked this" : "Like"
+-              }
+-            >
+-              {this.state.currentSubmission.liked ? "🖤" : "+♡"}
+-              {this.state.currentSubmission.data.score}{" "}
+-            </button>
+-            {this.state.currentSubmission.data.title}
+-          </div>
+-        )}
+-
+-        {this.state.submissionMenuOpen && (
+-          <Menu close={() => this.closeMenu()}>
+-            <h4>Share your creation with the people! (try using #hashtags)</h4>
+-            <p>
+-              Please be nice. Users who post hateful or sexually explicit
+-              content will be banned.
+-            </p>
+-            <img src={this.state.data.dataURL} className="submissionImg" />
+-            <SignInButton>
+-              <div style={{ display: "flex" }}>
+-                <input
+-                  maxlength="200"
+-                  placeholder="Title"
+-                  onChange={(e) => this.setState({ title: e.target.value })}
+-                />
+-                <button
+-                  disabled={this.state.submitting || this.rateLimited()}
+-                  onClick={() => this.submit()}
+-                >
+-                  Submit
+-                </button>
+-              </div>
+-            </SignInButton>
+-          </Menu>
+-        )}
+       </React.Fragment>
+     );
+   }
+diff --git a/js/fps.js b/js/fps.js
+index a3baf1f..aa464bc 100644
+--- a/js/fps.js
++++ b/js/fps.js
+@@ -2,9 +2,8 @@ let samples = 600;
+ 
+ window.dataLayer = window.dataLayer || [];
+ 
+-function gtag() {
+-  dataLayer.push(arguments);
+-}
++// Pleasure Union: без Google Analytics.
++function gtag() {}
+ 
+ const fps = new (class {
+   constructor() {
+diff --git a/js/index.js b/js/index.js
+index 22a8793..c748091 100644
+--- a/js/index.js
++++ b/js/index.js
+@@ -1,23 +1,5 @@
+-import * as Sentry from "@sentry/browser";
+-import { Integrations } from "@sentry/tracing";
+-import { Wasm as WasmIntegration } from "@sentry/wasm";
+ import { boot } from "./boot";
+-if (!window.location.host.startsWith("localhost")) {
+-  Sentry.init({
+-    dsn: "https://4bf8c3ab764f40569d573fc4021efe40@o40136.ingest.sentry.io/1331284",
+-
+-    // Alternatively, use `process.env.npm_package_version` for a dynamic release version
+-    // if your build tool supports it.
+-    integrations: [new Integrations.BrowserTracing(), new WasmIntegration()],
+-
+-    // Set tracesSampleRate to 1.0 to capture 100%
+-    // of transactions for performance monitoring.
+-    // We recommend adjusting this value in production
+-    tracesSampleRate: 0.01,
+-  });
+-}
+-
+-import "./api";
++// Pleasure Union: без Sentry (отчёты об ошибках на чужой сервер).
+ import { Universe } from "../crate/pkg";
+ 
+ import { startWebGL } from "./render";
+@@ -27,7 +9,7 @@ import {} from "./app";
+ import { startFluid } from "./fluid";
+ import {} from "./layout";
+ 
+-const isBench = window.location.pathname === "/bench";
++const isBench = false;
+ if (window.safari) {
+   history.pushState(null, null, location.href);
+   window.onpopstate = function (event) {
+@@ -51,25 +33,15 @@ function mobileAndTabletcheck() {
+   return check;
+ }
+ 
+-if (mobileAndTabletcheck()) {
++// Pleasure Union: в галерее из игры выходят кнопкой «Назад» Telegram —
++// вопрос браузера «покинуть страницу?» там только мешал бы.
++if (mobileAndTabletcheck() && !(window.PU && window.PU.inGallery)) {
+   window.onbeforeunload = function () {
+     return true;
+   };
+ }
+ 
+-if ("serviceWorker" in navigator) {
+-  window.addEventListener("load", () => {
+-    navigator.serviceWorker
+-      .register("/service-worker.js")
+-      .then((registration) => {
+-        console.log("SW registered: ", registration);
+-        fetch("index.html"); // refresh cache (?)
+-      })
+-      .catch((registrationError) => {
+-        console.log("SW registration failed: ", registrationError);
+-      });
+-  });
+-}
++// Pleasure Union: без service worker — игру раздаёт галерея.
+ 
+ let n = 300;
+ const universe = isBench ? window.u : Universe.new(n, n);
+@@ -140,5 +112,4 @@ document.addEventListener("paste", function (event) {
+   }
+ });
+ 
+-(adsbygoogle = window.adsbygoogle || []).push({});
+ export { canvas, width, height, universe, reset };
+diff --git a/package.json b/package.json
+index 8860e0c..d4c15bb 100644
+--- a/package.json
++++ b/package.json
+@@ -41,6 +41,7 @@
+   "dependencies": {
+     "@babel/plugin-proposal-class-properties": "^7.7.4",
+     "@babel/plugin-transform-runtime": "^7.13.15",
++    "@babel/runtime": "7.28.4",
+     "@sentry/browser": "^6.2.5",
+     "@sentry/react": "^7.28.1",
+     "@sentry/tracing": "^6.2.5",
+diff --git a/webpack.config.js b/webpack.config.js
+index 28c87ab..a1402d4 100644
+--- a/webpack.config.js
++++ b/webpack.config.js
+@@ -6,7 +6,6 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+ const HtmlWebpackPlugin = require("html-webpack-plugin");
+ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+ 
+-const { GenerateSW } = require("workbox-webpack-plugin");
+ 
+ module.exports = (env, argv) => {
+   const isProduction = argv.mode === "production";
+@@ -20,44 +19,23 @@ module.exports = (env, argv) => {
+     new CopyWebpackPlugin({
+       patterns: [
+         "js/styles.css",
+-        "manifest.json",
+-        { from: "assets/*" },
++        "pu-tg.js",
++        { from: "assets/favicon.ico", to: "assets/" },
++        { from: "assets/favicon-32x32.png", to: "assets/" },
++        { from: "assets/App_Store_Badge.svg.png", to: "assets/" },
+       ],
+     }),
+     new HtmlWebpackPlugin({ template: "index.html" }),
+   ];
+ 
+-  // Only add service worker in production to avoid watch mode warnings
+-  if (isProduction) {
+-    plugins.push(
+-      new GenerateSW({
+-        navigateFallback: "index.html",
+-        runtimeCaching: [
+-          {
+-            urlPattern: /\.html$/,
+-            handler: "StaleWhileRevalidate",
+-          },
+-          {
+-            urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
+-            handler: "CacheFirst",
+-            options: {
+-              cacheName: "images",
+-              expiration: {
+-                maxEntries: 300,
+-              },
+-            },
+-          },
+-        ],
+-      })
+-    );
+-  }
++  // Pleasure Union: без service worker — игру раздаёт галерея.
+ 
+   return {
+     entry: "./js/bootstrap.js",
+     output: {
+       path: dist,
+       filename: "[name].[contenthash].js",
+-      publicPath: "/",
++      publicPath: "./",
+     },
+     devServer: {
+       static: dist,
+@@ -68,7 +46,7 @@ module.exports = (env, argv) => {
+       asyncWebAssembly: true,
+     },
+     mode: isProduction ? "production" : "development",
+-    devtool: "source-map",
++    devtool: false,
+     plugins,
+   module: {
+     rules: [
